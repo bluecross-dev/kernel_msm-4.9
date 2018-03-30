@@ -100,7 +100,7 @@ void *__nf_ct_ext_add_length(struct nf_conn *ct, enum nf_ct_ext_id id,
 	newoff = ALIGN(old->len, t->align);
 	newlen = newoff + t->len + var_alloc_len;
 	rcu_read_unlock();
-
+	kmemleak_not_leak(old);
 	new = __krealloc(old, newlen, gfp);
 	if (!new)
 		return NULL;
