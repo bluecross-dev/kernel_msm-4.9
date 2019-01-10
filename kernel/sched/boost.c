@@ -59,8 +59,12 @@ static void boost_kick_cpus(void)
 			 * has something running in order to check for
 			 * migration afterwards, otherwise skip it.
 			 */
-			if (nr_running)
+			if (nr_running) {
+				pr_info("sched_boost: [bomb] kicking small cpu...\n");
 				boost_kick(i);
+			} else {
+				pr_info("sched_boost: [bomb] nah\n");
+			}
 		}
 	}
 }

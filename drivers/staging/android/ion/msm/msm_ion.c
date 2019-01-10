@@ -966,8 +966,11 @@ int msm_ion_heap_alloc_pages_mem(struct pages_mem *pages_mem)
 				__GFP_COMP | __GFP_NORETRY |
 				__GFP_NOWARN);
 		if (!pages) {
+			pr_info("msm_ion: [bomb] trying vmalloc instead of kmalloc...\n");
 			pages = vmalloc(page_tbl_size);
 			pages_mem->free_fn = vfree;
+		} else {
+			pr_info("msm_ion: [bomb] we gucci now\n");
 		}
 	} else {
 		pages = kmalloc(page_tbl_size, GFP_KERNEL);
