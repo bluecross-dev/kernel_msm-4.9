@@ -10992,12 +10992,8 @@ static inline bool nohz_kick_needed(struct rq *rq, int *type)
 		 * - all tasks are pinned to this CPU
 		 */
 		if (delta < 2)
-			if (current->nr_cpus_allowed > 1 || !delta) {
-				pr_info("nohz_balance: [bomb] do not even try\n");
+			if (current->nr_cpus_allowed > 1 || !delta)
 				return false;
-			} else {
-				pr_info("nohz_balance: [bomb] why not\n");
-			}
 	}
 
 	if (rq->nr_running >= 2 &&
