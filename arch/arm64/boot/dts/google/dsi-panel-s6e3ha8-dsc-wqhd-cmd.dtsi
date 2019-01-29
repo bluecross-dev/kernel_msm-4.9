@@ -131,6 +131,8 @@
 					15 01 00 00 00 00 02 53 20
 				];
 
+				qcom,partial-update-enabled = "single_roi";
+				qcom,panel-roi-alignment = <720 40 720 40 720 40>;
 				qcom,compression-mode = "dsc";
 				qcom,mdss-dsc-slice-height = <40>;
 				qcom,mdss-dsc-slice-width = <720>;
