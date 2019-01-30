@@ -1302,7 +1302,7 @@ static int _do_stune_boost(struct schedtune *st, int boost, int *slot)
 	return ret;
 }
 
-int reset_stune_boost(char *st_name, int slot)
+int reset_stune_boost(char *st_name, int slot, bool reset_boost)
 {
 	int ret = 0;
 	int boost = 0;
@@ -1321,7 +1321,9 @@ int reset_stune_boost(char *st_name, int slot)
 	mutex_lock(&stune_boost_mutex);
 	/* Boost only if value changed */
 	if (boost != st->boost)
-		ret = dynamic_boost(st, boost);
+        if (reset_boost)
+            /* Reset only when option is true */
+            ret = dynamic_boost(st, boost);
 	mutex_unlock(&stune_boost_mutex);
 
 	return ret;
