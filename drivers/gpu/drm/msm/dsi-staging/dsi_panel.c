@@ -1844,8 +1844,7 @@ static int dsi_panel_parse_misc_features(struct dsi_panel *panel,
 {
 	u32 val;
 
-	panel->ulps_enabled =
-		of_property_read_bool(of_node, "qcom,ulps-enabled");
+	panel->ulps_enabled = true;
 
 	pr_info("%s: ulps feature %s\n", __func__,
 		(panel->ulps_enabled ? "enabled" : "disabled"));
