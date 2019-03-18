@@ -26,6 +26,8 @@
 #define RAMLOG_LAST_RSE_NAME "bl_old_log"
 #define RAMLOG_CUR_RSE_NAME "bl_log"
 
+#define BOOT_DEBUG_MAGIC		0xAACCBBDD
+
 /* Header structure defined in LK */
 struct bldr_log_header {
 	__u32 magic;
