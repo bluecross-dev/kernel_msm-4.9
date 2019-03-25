@@ -274,10 +274,16 @@ void f2fs_sbi_list_del(struct f2fs_sb_info *sbi)
 static struct work_struct f2fs_gc_ps_worker;
 static void f2fs_gc_ps_work(struct work_struct *work)
 {
-	if (!TRIGGER_SOFF) {
-		f2fs_stop_all_gc_threads();
-	} else {
-		f2fs_start_all_gc_threads();
+	static bool status;
+	bool start_gc = TRIGGER_SOFF;
+
+	if (status != start_gc) {
+		status = start_gc;
+		if (!start_gc) {
+			f2fs_stop_all_gc_threads();
+		} else {
+			f2fs_start_all_gc_threads();
+		}
 	}
 }
 
