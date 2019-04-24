@@ -74,6 +74,11 @@ struct tzbsp_video_set_state_req {
 	u32 spare; /* reserved for future, should be zero */
 };
 
+const struct msm_vidc_gov_data DEFAULT_BUS_VOTE = {
+	.data = NULL,
+	.data_count = 0,
+};
+
 const int max_packets = 1000;
 
 static void venus_hfi_pm_handler(struct work_struct *work);
@@ -322,7 +327,7 @@ static int __write_queue(struct vidc_iface_q_info *qinfo, u8 *packet,
 {
 	struct hfi_queue_header *queue;
 	u32 packet_size_in_words, new_write_idx;
-	u32 empty_space, read_idx;
+	u32 empty_space, read_idx, write_idx;
 	u32 *write_ptr;
 
 	if (!qinfo || !packet) {
@@ -345,16 +350,18 @@ static int __write_queue(struct vidc_iface_q_info *qinfo, u8 *packet,
 	}
 
 	packet_size_in_words = (*(u32 *)packet) >> 2;
-	if (!packet_size_in_words) {
-		dprintk(VIDC_ERR, "Zero packet size\n");
+	if (!packet_size_in_words || packet_size_in_words >
+		qinfo->q_array.mem_size>>2) {
+		dprintk(VIDC_ERR, "Invalid packet size\n");
 		return -ENODATA;
 	}
 
 	read_idx = queue->qhdr_read_idx;
+	write_idx = queue->qhdr_write_idx;
 
-	empty_space = (queue->qhdr_write_idx >=  read_idx) ?
-		(queue->qhdr_q_size - (queue->qhdr_write_idx -  read_idx)) :
-		(read_idx - queue->qhdr_write_idx);
+	empty_space = (write_idx >=  read_idx) ?
+		((qinfo->q_array.mem_size>>2) - (write_idx -  read_idx)) :
+		(read_idx - write_idx);
 	if (empty_space <= packet_size_in_words) {
 		queue->qhdr_tx_req =  1;
 		dprintk(VIDC_ERR, "Insufficient size (%d) to write (%d)\n",
@@ -364,13 +371,20 @@ static int __write_queue(struct vidc_iface_q_info *qinfo, u8 *packet,
 
 	queue->qhdr_tx_req =  0;
 
-	new_write_idx = (queue->qhdr_write_idx + packet_size_in_words);
+	new_write_idx = write_idx + packet_size_in_words;
 	write_ptr = (u32 *)((qinfo->q_array.align_virtual_addr) +
-		(queue->qhdr_write_idx << 2));
-	if (new_write_idx < queue->qhdr_q_size) {
+			(write_idx << 2));
+	if (write_ptr < (u32 *)qinfo->q_array.align_virtual_addr ||
+	    write_ptr > (u32 *)(qinfo->q_array.align_virtual_addr +
+	    qinfo->q_array.mem_size)) {
+		dprintk(VIDC_ERR, "Invalid write index");
+		return -ENODATA;
+	}
+
+	if (new_write_idx < (qinfo->q_array.mem_size >> 2)) {
 		memcpy(write_ptr, packet, packet_size_in_words << 2);
 	} else {
-		new_write_idx -= queue->qhdr_q_size;
+		new_write_idx -= qinfo->q_array.mem_size >> 2;
 		memcpy(write_ptr, packet, (packet_size_in_words -
 			new_write_idx) << 2);
 		memcpy((void *)qinfo->q_array.align_virtual_addr,
@@ -466,7 +480,8 @@ static int __read_queue(struct vidc_iface_q_info *qinfo, u8 *packet,
 	u32 packet_size_in_words, new_read_idx;
 	u32 *read_ptr;
 	u32 receive_request = 0;
-		int rc = 0;
+	u32 read_idx, write_idx;
+	int rc = 0;
 
 	if (!qinfo || !packet || !pb_tx_req_is_set) {
 		dprintk(VIDC_ERR, "Invalid Params\n");
@@ -499,7 +514,10 @@ static int __read_queue(struct vidc_iface_q_info *qinfo, u8 *packet,
 	if (queue->qhdr_type & HFI_Q_ID_CTRL_TO_HOST_MSG_Q)
 		receive_request = 1;
 
-	if (queue->qhdr_read_idx == queue->qhdr_write_idx) {
+	read_idx = queue->qhdr_read_idx;
+	write_idx = queue->qhdr_write_idx;
+
+	if (read_idx == write_idx) {
 		queue->qhdr_rx_req = receive_request;
 		/*
 		 * mb() to ensure qhdr is updated in main memory
@@ -516,21 +534,28 @@ static int __read_queue(struct vidc_iface_q_info *qinfo, u8 *packet,
 	}
 
 	read_ptr = (u32 *)((qinfo->q_array.align_virtual_addr) +
-				(queue->qhdr_read_idx << 2));
+				(read_idx << 2));
+	if (read_ptr < (u32 *)qinfo->q_array.align_virtual_addr ||
+	    read_ptr > (u32 *)(qinfo->q_array.align_virtual_addr +
+	    qinfo->q_array.mem_size - sizeof(*read_ptr))) {
+		dprintk(VIDC_ERR, "Invalid read index\n");
+		return -ENODATA;
+	}
+
 	packet_size_in_words = (*read_ptr) >> 2;
 	if (!packet_size_in_words) {
 		dprintk(VIDC_ERR, "Zero packet size\n");
 		return -ENODATA;
 	}
 
-	new_read_idx = queue->qhdr_read_idx + packet_size_in_words;
-	if (((packet_size_in_words << 2) <= VIDC_IFACEQ_VAR_HUGE_PKT_SIZE)
-			&& queue->qhdr_read_idx <= queue->qhdr_q_size) {
-		if (new_read_idx < queue->qhdr_q_size) {
+	new_read_idx = read_idx + packet_size_in_words;
+	if (((packet_size_in_words << 2) <= VIDC_IFACEQ_VAR_HUGE_PKT_SIZE) &&
+		read_idx <= (qinfo->q_array.mem_size >> 2)) {
+		if (new_read_idx < (qinfo->q_array.mem_size >> 2)) {
 			memcpy(packet, read_ptr,
 					packet_size_in_words << 2);
 		} else {
-			new_read_idx -= queue->qhdr_q_size;
+			new_read_idx -= (qinfo->q_array.mem_size >> 2);
 			memcpy(packet, read_ptr,
 			(packet_size_in_words - new_read_idx) << 2);
 			memcpy(packet + ((packet_size_in_words -
@@ -541,18 +566,18 @@ static int __read_queue(struct vidc_iface_q_info *qinfo, u8 *packet,
 	} else {
 		dprintk(VIDC_WARN,
 			"BAD packet received, read_idx: %#x, pkt_size: %d\n",
-			queue->qhdr_read_idx, packet_size_in_words << 2);
+			read_idx, packet_size_in_words << 2);
 		dprintk(VIDC_WARN, "Dropping this packet\n");
-		new_read_idx = queue->qhdr_write_idx;
+		new_read_idx = write_idx;
 		rc = -ENODATA;
 	}
 
-	queue->qhdr_read_idx = new_read_idx;
-
-	if (queue->qhdr_read_idx != queue->qhdr_write_idx)
+	if (new_read_idx != write_idx)
 		queue->qhdr_rx_req = 0;
 	else
 		queue->qhdr_rx_req = receive_request;
+
+	queue->qhdr_read_idx = new_read_idx;
 	/*
 	 * mb() to ensure qhdr is updated in main memory
 	 * so that venus reads the updated header values
@@ -823,6 +848,8 @@ static int __unvote_buses(struct venus_hfi_device *device)
 	int rc = 0;
 	struct bus_info *bus = NULL;
 
+	kfree(device->bus_vote.data);
+	device->bus_vote.data = NULL;
 	device->bus_vote.data_count = 0;
 
 	venus_hfi_for_each_bus(device, bus) {
@@ -846,6 +873,7 @@ static int __vote_buses(struct venus_hfi_device *device,
 {
 	int rc = 0;
 	struct bus_info *bus = NULL;
+	struct vidc_bus_vote_data *new_data = NULL;
 
 	if (!num_data) {
 		dprintk(VIDC_DBG, "No vote data available\n");
@@ -855,7 +883,16 @@ static int __vote_buses(struct venus_hfi_device *device,
 		return -EINVAL;
 	}
 
+	new_data = kmemdup(data, num_data * sizeof(*new_data), GFP_KERNEL);
+	if (!new_data) {
+		dprintk(VIDC_ERR, "Can't alloc memory to cache bus votes\n");
+		rc = -ENOMEM;
+		goto err_no_mem;
+	}
+
 no_data_count:
+	kfree(device->bus_vote.data);
+	device->bus_vote.data = new_data;
 	device->bus_vote.data_count = num_data;
 
 	venus_hfi_for_each_bus(device, bus) {
@@ -1689,8 +1726,16 @@ static int venus_hfi_core_init(void *device)
 
 	mutex_lock(&dev->lock);
 
+	dev->bus_vote.data =
+		kzalloc(sizeof(struct vidc_bus_vote_data), GFP_KERNEL);
+	if (!dev->bus_vote.data) {
+		dprintk(VIDC_ERR, "Bus vote data memory is not allocated\n");
+		rc = -ENOMEM;
+		goto err_no_mem;
+	}
+
 	dev->bus_vote.data_count = 1;
-	dev->bus_vote.data[0].power_mode = VIDC_POWER_TURBO;
+	dev->bus_vote.data->power_mode = VIDC_POWER_TURBO;
 
 	rc = __load_fw(dev);
 	if (rc) {
@@ -1765,6 +1810,7 @@ err_core_init:
 	__set_state(dev, VENUS_STATE_DEINIT);
 	__unload_fw(dev);
 err_load_fw:
+err_no_mem:
 	dprintk(VIDC_ERR, "Core init failed\n");
 	mutex_unlock(&dev->lock);
 	return rc;
@@ -3434,7 +3480,8 @@ static void __deinit_bus(struct venus_hfi_device *device)
 	if (!device)
 		return;
 
-	device->bus_vote.data_count = 0;
+	kfree(device->bus_vote.data);
+	device->bus_vote = DEFAULT_BUS_VOTE;
 
 	venus_hfi_for_each_bus_reverse(device, bus) {
 		devfreq_remove_device(bus->devfreq);
@@ -3511,7 +3558,7 @@ static int __init_bus(struct venus_hfi_device *device)
 		devfreq_suspend_device(bus->devfreq);
 	}
 
-	device->bus_vote.data_count = 0;
+	device->bus_vote = DEFAULT_BUS_VOTE;
 	return 0;
 
 err_add_dev:
