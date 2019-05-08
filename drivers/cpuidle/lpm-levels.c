@@ -111,7 +111,7 @@ static DEFINE_PER_CPU(struct lpm_cpu*, cpu_lpm);
 static bool suspend_in_progress;
 static struct hrtimer lpm_hrtimer;
 static DEFINE_PER_CPU(struct hrtimer, histtimer);
-static struct lpm_debug *lpm_debug;
+static struct lpm_debug *const lpm_debug = NULL;
 static phys_addr_t lpm_debug_phys;
 static const int num_dbg_elements = 0x100;
 
@@ -1752,7 +1752,8 @@ static int lpm_probe(struct platform_device *pdev)
 	cluster_timer_init(lpm_root_node);
 
 	size = num_dbg_elements * sizeof(struct lpm_debug);
-	lpm_debug = NULL;
+	//lpm_debug = dma_alloc_coherent(&pdev->dev, size,
+	//		&lpm_debug_phys, GFP_KERNEL);
 
 	register_cluster_lpm_stats(lpm_root_node, NULL);
 
