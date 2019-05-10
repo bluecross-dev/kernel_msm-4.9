@@ -44,6 +44,7 @@
 		polling-delay = <0>;
 		thermal-sensors = <&pm8998_adc_tm 0x55>;
 		thermal-governor = "user_space";
+		wake-capable-sensor;
 
 		trips {
 			active-config0 {
