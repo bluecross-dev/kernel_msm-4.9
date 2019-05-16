@@ -61,6 +61,7 @@
 		qcom,mdss-dsi-panel-blackness-level = <42>;
 		google,mdss-dsi-lp-brightness-compensation = <0>;
 
+		qcom,mdss-mdp-transfer-time-us = <15000>;
 		qcom,ulps-enabled;
 
 		qcom,mdss-dsi-display-timings {
