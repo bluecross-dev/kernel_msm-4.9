@@ -97,7 +97,7 @@ SCHED_FEAT(MIN_CAPACITY_CAPPING, false)
  * ON: If the target CPU saves any energy, use that.
  * OFF: Use whichever of target or backup saves most.
  */
-SCHED_FEAT(FBT_STRICT_ORDER, true)
+SCHED_FEAT(FBT_STRICT_ORDER, false)
 /*
  * Enforce schedtune.prefer_idle to take need_idle path.
  * ON: schedtune.prefer_idle is replaced with need_idle
