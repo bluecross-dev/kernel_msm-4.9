@@ -29,14 +29,14 @@ static inline void gc_set_wakelock(struct f2fs_sb_info *sbi,
 		struct f2fs_gc_kthread *gc_th, bool val)
 {
 	if (val) {
-		if (!gc_th->gc_wakelock.active) {
+		if (!gc_th->gc_wakelock->active) {
 			f2fs_msg(sbi->sb, KERN_INFO, "Catching wakelock for GC");
-			__pm_stay_awake(&gc_th->gc_wakelock);
+			__pm_stay_awake(gc_th->gc_wakelock);
 		}
 	} else {
-		if (gc_th->gc_wakelock.active) {
+		if (gc_th->gc_wakelock->active) {
 			f2fs_msg(sbi->sb, KERN_INFO, "Unlocking wakelock for GC");
-			__pm_relax(&gc_th->gc_wakelock);
+			__pm_relax(gc_th->gc_wakelock);
 		}
 	}
 }
@@ -183,7 +183,7 @@ int f2fs_start_gc_thread(struct f2fs_sb_info *sbi)
 
 	snprintf(buf, sizeof(buf), "f2fs_gc-%u:%u", MAJOR(dev), MINOR(dev));
 
-	wakeup_source_init(&gc_th->gc_wakelock, buf);
+	gc_th->gc_wakelock = wakeup_source_register(buf);
 
 	sbi->gc_thread = gc_th;
 	init_waitqueue_head(&sbi->gc_thread->gc_wait_queue_head);
@@ -205,7 +205,7 @@ void f2fs_stop_gc_thread(struct f2fs_sb_info *sbi)
 	if (!gc_th)
 		return;
 	kthread_stop(gc_th->f2fs_gc_task);
-	wakeup_source_trash(&gc_th->gc_wakelock);
+	wakeup_source_unregister(gc_th->gc_wakelock);
 	kvfree(gc_th);
 	sbi->gc_mode = GC_NORMAL;
 	sbi->gc_thread = NULL;
