@@ -331,7 +331,7 @@ static int notrace ramoops_pstore_write_buf(enum pstore_type_id type,
 	 * we must to reset the buffer values, in order to ensure that the
 	 * header will be written to the beginning of the buffer.
 	 */
-	persistent_ram_zap(prz, 0);
+	persistent_ram_zap(prz);
 
 	hlen = ramoops_write_kmsg_hdr(prz, compressed);
 	if (size + hlen > prz->buffer_size)
