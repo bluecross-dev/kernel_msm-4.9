@@ -1,13 +1,13 @@
 ARCH=arm64
-BRANCH=android-msm-pixel-4.9
-CROSS_COMPILE=aarch64-linux-android-
-CROSS_COMPILE_ARM32=arm-linux-androideabi-
+BRANCH=ten
+CROSS_COMPILE=aarch64-none-elf-
+CROSS_COMPILE_ARM32=arm-none-eabi-
 EXTRA_CMDS=''
-CLANG_PREBUILT_BIN=prebuilts-master/clang/host/linux-x86/clang-r353983c/bin/
-LD_LIBRARY_PATH=${ROOT_DIR}/prebuilts-master/clang/host/linux-x86/clang-r353983c/lib64:$LD_LIBRARY_PATH
+CLANG_PREBUILT_BIN=prebuilts-master/clang/host/linux-x86/clang-r370808/bin/
+LD_LIBRARY_PATH=${ROOT_DIR}/prebuilts-master/clang/host/linux-x86/clang-r370808/lib64:$LD_LIBRARY_PATH
 export LD_LIBRARY_PATH
-LINUX_GCC_CROSS_COMPILE_PREBUILTS_BIN=prebuilts/gcc/linux-x86/aarch64/aarch64-linux-android-4.9/bin
-LINUX_GCC_CROSS_COMPILE_ARM32_PREBUILTS_BIN=prebuilts/gcc/linux-x86/arm/arm-linux-androideabi-4.9/bin
+LINUX_GCC_CROSS_COMPILE_PREBUILTS_BIN=prebuilts/gcc/linux-x86/aarch64/gcc-arm-9.2-2019.12-x86_64-aarch64-none-elf/bin
+LINUX_GCC_CROSS_COMPILE_ARM32_PREBUILTS_BIN=prebuilts/gcc/linux-x86/arm/gcc-arm-9.2-2019.12-x86_64-arm-none-eabi/bin
 LZ4_PREBUILTS_BIN=prebuilts-master/misc/linux-x86/lz4
 DTC_PREBUILTS_BIN=prebuilts-master/misc/linux-x86/dtc
 LIBUFDT_PREBUILTS_BIN=prebuilts-master/misc/linux-x86/libufdt
@@ -21,9 +21,6 @@ arch/arm64/boot/dts/qcom/sdm845-v2.dtb
 vmlinux
 System.map
 .config
-"
-EXT_MODULES="
-private/msm-google-modules/wlan/qcacld-3.0
 "
 IN_KERNEL_MODULES=1
 STOP_SHIP_TRACEPRINTK=1
