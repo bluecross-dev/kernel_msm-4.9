@@ -67,9 +67,4 @@
 		pmsg-size = <0x80000>;
 	};
 
-	kregistry_mem: kregistry_mem@b8000000 {
-		compatible = "removed-dma-pool";
-		no-map;
-		reg = <0x0 0xb8000000 0x0 0x10000>;
-	};
 };
