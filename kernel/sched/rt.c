@@ -1447,8 +1447,8 @@ static int find_lowest_rq(struct task_struct *task);
  * while handling a potentially long softint, or if the task is likely
  * to block preemptions soon because (a) it is a ksoftirq thread that is
  * handling slow softints, (b) it is idle and therefore likely to start
- * processing the irq's immediately, (c) the cpu is currently handling
- * hard irq's and will soon move on to the softirq handler.
+ * processing the irqs immediately, (c) the cpu is currently handling hard irqs
+ * and will soon move on to the softirq handler.
  */
 bool
 task_may_not_preempt(struct task_struct *task, int cpu)
@@ -1517,7 +1517,6 @@ select_task_rq_rt(struct task_struct *p, int cpu, int sd_flag, int flags)
 	     (tsk_nr_cpus_allowed(curr) < 2 ||
 	      curr->prio <= p->prio))) {
 		int target = find_lowest_rq(p);
-
 
 		/*
 		 * Check once for losing a race with the other core's irq

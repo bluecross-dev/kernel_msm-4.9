@@ -317,6 +317,7 @@ static struct device_attribute power_supply_attrs[] = {
 	POWER_SUPPLY_ATTR(cc_step),
 	POWER_SUPPLY_ATTR(cc_step_sel),
 	POWER_SUPPLY_ATTR(sw_jeita_enabled),
+	POWER_SUPPLY_ATTR(fg_reset_clock),
 	POWER_SUPPLY_ATTR(taper_control_enabled),
 	POWER_SUPPLY_ATTR(pd_voltage_max),
 	POWER_SUPPLY_ATTR(pd_voltage_min),
@@ -341,6 +342,7 @@ static struct device_attribute power_supply_attrs[] = {
 	POWER_SUPPLY_ATTR(charge_disable),
 	POWER_SUPPLY_ATTR(in_explicit_contract),
 	POWER_SUPPLY_ATTR(charger_status_fast),
+	POWER_SUPPLY_ATTR(batt_ce_ctrl),
 	/* Local extensions of type int64_t */
 	POWER_SUPPLY_ATTR(charge_counter_ext),
 	/* Properties of type `const char *' */
