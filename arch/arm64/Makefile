@@ -83,6 +83,10 @@ ifeq ($(CONFIG_COMPAT_VDSO), y)
   endif
 endif
 
+ifeq ($(CONFIG_ARCH_SDM845), y)
+KBUILD_CFLAGS	+= -mcpu=cortex-a75.cortex-a55
+endif
+
 ifeq ($(cc-name),clang)
 # This is a workaround for https://bugs.llvm.org/show_bug.cgi?id=30792.
 # TODO: revert when this is fixed in LLVM.
