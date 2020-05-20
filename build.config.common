@@ -3,8 +3,8 @@ BRANCH=ten-rebase
 CROSS_COMPILE=aarch64-none-elf-
 CROSS_COMPILE_ARM32=arm-none-eabi-
 EXTRA_CMDS=''
-CLANG_PREBUILT_BIN=prebuilts-master/clang/host/linux-x86/clang-r370808/bin/
-LD_LIBRARY_PATH=${ROOT_DIR}/prebuilts-master/clang/host/linux-x86/clang-r370808/lib64:$LD_LIBRARY_PATH
+CLANG_PREBUILT_BIN=prebuilts-master/clang/host/linux-x86/clang-r377782b/bin/
+LD_LIBRARY_PATH=${ROOT_DIR}/prebuilts-master/clang/host/linux-x86/clang-r377782b/lib64:$LD_LIBRARY_PATH
 export LD_LIBRARY_PATH
 LINUX_GCC_CROSS_COMPILE_PREBUILTS_BIN=prebuilts/gcc/linux-x86/aarch64/gcc-arm-9.2-2019.12-x86_64-aarch64-none-elf/bin
 LINUX_GCC_CROSS_COMPILE_ARM32_PREBUILTS_BIN=prebuilts/gcc/linux-x86/arm/gcc-arm-9.2-2019.12-x86_64-arm-none-eabi/bin
@@ -27,3 +27,4 @@ STOP_SHIP_TRACEPRINTK=1
 UNSTRIPPED_MODULES="
 wlan.ko
 "
+BUILD_INITRAMFS=1
